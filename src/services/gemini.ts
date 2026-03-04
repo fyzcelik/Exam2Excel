@@ -1,44 +1,93 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { ExamQuestion } from "../types";
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || "");
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "" });
 
 export async function processExamPdf(file: File): Promise<ExamQuestion[]> {
   const base64Data = await fileToBase64(file);
 
-  // ÇÖZÜM: Model isminin başına "models/" ekliyoruz ve apiVersion belirtmiyoruz (varsayılanı kullansın)
-  const model = genAI.getGenerativeModel({ 
-    model: "models/gemini-1.5-flash" 
-  });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: [
+      {
+        parts: [
+          {
+            inlineData: {
+              mimeType: file.type,
+              data: base64Data,
+            },
+          },
+          {
+            text: `
+You are an exam parser and solver.
 
-  const result = await model.generateContent([
-    {
-      inlineData: {
-        mimeType: file.type,
-        data: base64Data,
+STEP 1
+Extract every question and options A, B, C, D, E from the PDF.
+
+CRITICAL: Question Numbering
+- Questions may NOT start from 1 (e.g., they might start from 8, 15, etc.).
+- Questions may NOT be sequential (e.g., 8, 9, 11, 15).
+- Some questions might be skipped or missing in the document.
+- ALWAYS use the ACTUAL question number/ID as written in the PDF for the "Soru ID" field.
+- Do NOT re-index the questions. If the PDF says "Question 8", the Soru ID must be "8".
+
+STEP 2
+Check if the correct answer is already shown in the PDF:
+Examples:
+Answer: B
+Correct answer: C
+Doğru cevap: A
+ANSWER KEY sections
+Highlighted / marked answers
+
+If the answer exists in the document, use it.
+
+STEP 3
+If the answer does NOT exist, solve the question yourself and determine the most likely correct option.
+
+Rules
+- "Doğru Cevap" must contain only: A, B, C, D or E
+- Do not leave it empty unless impossible
+- Do not write explanations
+- Output must be valid JSON
+
+Keys must be exactly:
+"Soru ID", "Soru", "A", "B", "C", "D", "E", "Doğru Cevap"
+`.trim(),
+          },
+        ],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            "Soru ID": { type: Type.STRING, description: "The actual question number or ID as written in the PDF (e.g., '8', '15'). Do not re-index." },
+            "Soru": { type: Type.STRING, description: "The full text of the question" },
+            "A": { type: Type.STRING, description: "Option A text" },
+            "B": { type: Type.STRING, description: "Option B text" },
+            "C": { type: Type.STRING, description: "Option C text" },
+            "D": { type: Type.STRING, description: "Option D text" },
+            "E": { type: Type.STRING, description: "Option E text" },
+            "Doğru Cevap": { type: Type.STRING, description: "The correct option (A, B, C, D, or E). Leave empty if unknown." },
+          },
+          required: ["Soru ID", "Soru", "A", "B", "C", "D", "E", "Doğru Cevap"],
+        },
       },
     },
-    {
-      text: `You are an exam parser. 
-      Extract every question and options A, B, C, D, E from the PDF.
-      Use ACTUAL question number as "Soru ID".
-      Return ONLY a raw JSON array. 
-      Format: [{"Soru ID": "...", "Soru": "...", "A": "...", "B": "...", "C": "...", "D": "...", "E": "...", "Doğru Cevap": "..."}]
-      No markdown, no explanations.`.trim(),
-    },
-  ]);
+  });
 
-  const response = await result.response;
-  let text = response.text();
-  
-  // Markdown temizliği
-  text = text.replace(/```json/g, "").replace(/```/g, "").trim();
-  
+  const text = response.text;
+  if (!text) throw new Error("No response from AI");
+
   try {
     return JSON.parse(text);
   } catch (e) {
-    console.error("JSON Parse Hatası:", text);
-    throw new Error("AI cevabı beklenen formatta değil.");
+    console.error("Failed to parse AI response:", text);
+    throw new Error("Invalid response format from AI");
   }
 }
 

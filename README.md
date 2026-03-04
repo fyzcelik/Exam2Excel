@@ -1,20 +1,17 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Vercel Deployment Guide
 
-# Run and deploy your AI Studio app
+To deploy this application to Vercel, follow these steps:
 
-This contains everything you need to run your app locally.
+1.  **Push to GitHub/GitLab/Bitbucket**: Ensure your code is in a repository.
+2.  **Import to Vercel**: Connect your repository to Vercel.
+3.  **Environment Variables**: In the Vercel dashboard, go to **Settings > Environment Variables** and add:
+    -   `VITE_GEMINI_API_KEY`: Your Google Gemini API Key.
+    -   `GEMINI_API_KEY`: (Optional) Your Google Gemini API Key (for compatibility).
+4.  **Build Settings**: Vercel should automatically detect the Vite project.
+    -   Build Command: `npm run build`
+    -   Output Directory: `dist`
+    -   Install Command: `npm install`
+5.  **Deploy**: Click "Deploy".
 
-View your app in AI Studio: https://ai.studio/apps/21200363-00d9-41f2-97d7-14131b67cdef
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## SPA Routing
+The `vercel.json` file is included to handle Single Page Application (SPA) routing, ensuring that page refreshes on sub-routes don't result in 404 errors.
