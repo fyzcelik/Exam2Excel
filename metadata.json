@@ -1,0 +1,5 @@
+{
+  "name": "Remix: Exam PDF to Excel Converter",
+  "description": "Convert exam PDF files into structured Excel spreadsheets using AI.",
+  "requestFramePermissions": []
+}
