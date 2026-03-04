@@ -9,7 +9,7 @@ export async function processExamPdf(file: File): Promise<ExamQuestion[]> {
 
   // Model ismini güncel ve kararlı bir sürüme çekiyoruz
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash", 
+    model: "gemini-1.5-flash-latest",
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: {
