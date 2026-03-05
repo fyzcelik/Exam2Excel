@@ -1,11 +1,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ExamQuestion } from "../types";
 
-const ai = new GoogleGenAI({ 
-  apiKey: (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) || "" 
-});
-
 export async function processExamPdf(file: File): Promise<ExamQuestion[]> {
+  const apiKey = (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) || 
+                 (import.meta as any).env?.VITE_GEMINI_API_KEY || 
+                 "";
+
+  if (!apiKey) {
+    throw new Error("Gemini API anahtarı bulunamadı. Lütfen Vercel ayarlarından VITE_GEMINI_API_KEY değişkenini eklediğinizden emin olun.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   const base64Data = await fileToBase64(file);
 
   const response = await ai.models.generateContent({

@@ -36,8 +36,8 @@ export default function App() {
     try {
       const result = await processExamPdf(file);
       setQuestions(result);
-    } catch (err) {
-      setError('Dosya işlenirken bir hata oluştu. Lütfen tekrar deneyin.');
+    } catch (err: any) {
+      setError(err.message || 'Dosya işlenirken bir hata oluştu. Lütfen tekrar deneyin.');
       console.error(err);
     } finally {
       setLoading(false);
