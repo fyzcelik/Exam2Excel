@@ -235,7 +235,7 @@ export default function App() {
                         >
                           <td className="px-4 py-4 text-sm font-mono text-slate-500">{q["Soru ID"]}</td>
                           <td className="px-4 py-4 text-sm font-medium text-slate-900 min-w-[300px] max-w-[400px]">
-                            <p className="line-clamp-2">{q["Soru"]}</p>
+                            <div className="whitespace-pre-wrap">{q["Soru"]}</div>
                           </td>
                           <td className="px-4 py-4 text-sm text-slate-600">{q["A"]}</td>
                           <td className="px-4 py-4 text-sm text-slate-600">{q["B"]}</td>
