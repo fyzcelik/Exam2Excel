@@ -14,7 +14,7 @@ export async function processExamPdf(file: File): Promise<ExamQuestion[]> {
   const base64Data = await fileToBase64(file);
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.1-pro-preview",
+    model: "gemini-3-flash-preview",
     contents: [
       {
         parts: [
